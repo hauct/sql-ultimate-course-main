@@ -1,17 +1,17 @@
 services:
-  db:
-    build: ./postgres
-    container_name: adventure_db
+  postgres_db:
+    build: ./datasets/postgres
+    container_name: postgres_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-Adventureworks}
     ports:
       - '${POSTGRES_PORT}:5432'
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./data:/data
-      - ./install.sql:/docker-entrypoint-initdb.d/install.sql
+      - ./datasets/postgres/adventure:/adventure
+      - ./datasets/postgres/sales:/sales
+      - ./datasets/postgres/init-postgres-adventuredb.sql:/docker-entrypoint-initdb.d/init-postgres-adventuredb.sql
+      - ./datasets/postgres/init-postgres-salesdb.sql:/docker-entrypoint-initdb.d/init-postgres-salesdb.sql
     networks:
       - postgres-network
     healthcheck:
@@ -31,7 +31,7 @@ services:
     networks:
       - postgres-network
     depends_on:
-      - db
+      - postges_db
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
