@@ -1,6 +1,6 @@
 services:
   postgres_db:
-    build: ./datasets/postgres
+    image: citusdata/citus
     container_name: postgres_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -31,7 +31,7 @@ services:
     networks:
       - postgres-network
     depends_on:
-      - postges_db
+      - postgres_db
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 

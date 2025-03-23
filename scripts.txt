@@ -1,0 +1,66 @@
+--- ROW INDEX
+SELECT *
+INTO "Sales".dbcustomers
+FROM "Sales".customers
+
+CREATE INDEX idx_dbcustomers_customerid
+ON "Sales".dbcustomers (customerid);
+CLUSTER "Sales".dbcustomers USING idx_dbcustomers_customerid;
+
+CREATE INDEX idx_dbcustomers_firstname
+ON "Sales".dbcustomers (firstname);
+
+CREATE INDEX idx_dbcustomers_lastname
+ON "Sales".dbcustomers (lastname);
+
+CREATE INDEX idx_dbcustomers_countryscore
+ON "Sales".dbcustomers (country, score);
+
+
+--- TEST HIỆU NĂN
+-- Tạo bảng Heap Table
+CREATE TABLE sales (
+    sale_id     SERIAL PRIMARY KEY,
+    sale_date   DATE,
+    product_id  INT,
+    customer_id INT,
+    amount      NUMERIC(10, 2)
+);
+
+-- Chèn 1 triệu bản ghi ngẫu nhiên
+INSERT INTO sales (sale_date, product_id, customer_id, amount)
+SELECT
+    '2023-01-01'::DATE + (random() * 365)::INT AS sale_date,
+    (random() * 1000)::INT AS product_id,
+    (random() * 10000)::INT AS customer_id,
+    (random() * 1000 + 10)::NUMERIC(10, 2) AS amount
+FROM generate_series(1, 10000000);
+
+-- Tạo Row Store
+CREATE TABLE sales_rownar (
+    sale_id     SERIAL PRIMARY KEY,
+    sale_date   DATE,
+    product_id  INT,
+    customer_id INT,
+    amount      NUMERIC(10, 2)
+);
+
+-- Tạo B-tree Index trên sale_date
+CREATE INDEX idx_sales_date ON sales_rownar (sale_date);
+
+-- Copy dữ liệu từ Heap Table sang Column Store
+INSERT INTO sales_rownar SELECT * FROM sales;
+
+-- Tạo Column Store
+CREATE TABLE sales_columnar (
+    sale_id     SERIAL PRIMARY KEY,
+    sale_date   DATE,
+    product_id  INT,
+    customer_id INT,
+    amount      NUMERIC(10, 2)
+) USING columnar;
+
+-- Copy dữ liệu từ Heap Table sang Column Store
+INSERT INTO sales_columnar SELECT * FROM sales;
+
+
